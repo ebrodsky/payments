@@ -8,3 +8,8 @@ When account is locked, cannot process deposits or withdrawals. Can still proces
 I assume that since the disputes, resolves and chargebacks are coming from the partner's side, that there is some correctness with the entries. For example, two chargebacks are possible for the same transaction and are processed fine by the program, but of course should not actually happen. This is because after an account is locked after a chargeback, I still allow all non transfer transactions (not deposit or withdrawal) on that account for its transactions.
 
 Disputes on a withdrawal act in an opposite way as on deposits. This means that the held amount for a transaction could be negative. If it's negative, this means that the withdrawal transaction is disputed, and once resolve the held amount will increase and the available amount decrease, representing a successfully resolved withdrawal. 
+
+To run:
+
+cargo build
+cargo run -- {test_file.csv} > {output_file.csv}
