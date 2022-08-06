@@ -12,4 +12,5 @@ Disputes on a withdrawal act in an opposite way as on deposits. This means that 
 To run:
 
 cargo build
+
 cargo run -- {test_file.csv} > {output_file.csv}
