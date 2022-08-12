@@ -93,7 +93,6 @@ impl PaymentEngine {
                         }
                     }
                 },
-                //TxType::Unknown => Err(Box::new(UnknownTransactionError)).unwrap()
                 TxType::Unknown => {
                     if STRICT_PARSE == true{
                         Err(Box::new(UnknownTransactionError)).unwrap()

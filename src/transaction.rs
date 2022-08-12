@@ -10,13 +10,29 @@ When account is locked, cannot process deposits or withdrawals. Can still proces
 This is because deposits and withdrawals are user-actions, and the other 3 are system actions once something is wrong.
 */
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all="lowercase")]
 pub enum TxType{
     Deposit,
     Withdrawal,
     Dispute,
     Resolve,
     Chargeback,
-    Unknown
+    #[serde(other)]
+    Unknown,
+}
+
+impl std::fmt::Display for TxType{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self{
+            TxType::Deposit => write!(f, "deposit"),
+            TxType::Withdrawal => write!(f, "withdrawal"),
+            TxType::Dispute => write!(f, "dispute"),
+            TxType::Resolve => write!(f, "resolve"),
+            TxType::Chargeback => write!(f, "chargeback"),
+            TxType::Unknown => write!(f, "unknown"),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -27,7 +43,7 @@ pub enum TxType{
 */
 pub struct Transaction {
     #[serde(rename = "type")]
-    tx_type: String,
+    tx_type: TxType,
     #[serde(rename = "client")]
     client_id: u16,
     #[serde(rename = "tx")]
@@ -40,15 +56,8 @@ pub struct Transaction {
 
 impl Transaction {
 
-    pub fn get_type(&self) -> TxType{
-        match self.tx_type.as_str() {
-            "deposit"   => TxType::Deposit,
-            "withdrawal"=> TxType::Withdrawal,
-            "dispute"   => TxType::Dispute,
-            "chargeback"=> TxType::Chargeback,
-            "resolve"   => TxType::Resolve,
-            _           => TxType::Unknown
-        }
+    pub fn get_type(&self) -> &TxType{
+        return &self.tx_type;
     }
 
     pub fn get_amount(&self) -> &Option<f32>{
