@@ -1,10 +1,14 @@
+use crate::STRICT_PARSE;
 use crate::transaction::{Transaction, TxType};
 use crate::account::Account;
+use crate::error::UnknownTransactionError;
 
 use std::error::Error;
 use std::env;
 use csv;
 use std::collections::HashMap;
+
+
 
 /*
     struct to keep information about set of transactions and accounts. Can be easily modified to have multiple payment engines running at the same time,
@@ -54,13 +58,6 @@ impl PaymentEngine {
         for entry in &self.entries{
             //println!("{}", entry);
             let client_id = entry.get_client_id();
-            // let account = self.accounts.entry(client_id).or_insert(Account{
-            //     client_id,
-            //     available: 0.0,
-            //     held: 0.0,
-            //     total: 0.0,
-            //     locked: false,
-            // });
 
             let account = self.accounts.entry(client_id).or_insert(Default::default());
             match entry.get_type() {
@@ -74,7 +71,7 @@ impl PaymentEngine {
                     if self.transactions.contains_key(&entry.get_tx_id()){
                         let rel_tx = self.transactions.get_mut(&entry.get_tx_id()).unwrap();
                         if rel_tx.is_disputed() == false{
-                            account.dispute_transaction(rel_tx);
+                            account.dispute_transaction(rel_tx)?
                         }
 
                     }
@@ -83,7 +80,7 @@ impl PaymentEngine {
                     if self.transactions.contains_key(&entry.get_tx_id()){
                         let rel_tx = self.transactions.get_mut(&entry.get_tx_id()).unwrap();
                         if rel_tx.is_disputed() == true{
-                            account.resolve_transaction(rel_tx);
+                            account.resolve_transaction(rel_tx)?
                         }
                     }
                 },
@@ -91,12 +88,20 @@ impl PaymentEngine {
                     if self.transactions.contains_key(&entry.get_tx_id()){
                         let rel_tx = self.transactions.get_mut(&entry.get_tx_id()).unwrap();
                         if rel_tx.is_disputed() == true{
-                            account.chargeback_transaction(rel_tx);
+                            account.chargeback_transaction(rel_tx)?
 
                         }
                     }
                 },
-                TxType::Unknown => panic!("Unknown transaction type.")
+                //TxType::Unknown => Err(Box::new(UnknownTransactionError)).unwrap()
+                TxType::Unknown => {
+                    if STRICT_PARSE == true{
+                        Err(Box::new(UnknownTransactionError)).unwrap()
+                    }
+                    else{
+                        continue
+                    }
+                }
             }
             //self.output_accounts();
         }

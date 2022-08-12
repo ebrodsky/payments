@@ -1,6 +1,9 @@
 mod engine;
 mod transaction;
 mod account;
+mod error;
+
+static STRICT_PARSE: bool = false;
 
 fn main() {
     let mut engine = engine::PaymentEngine::new();
