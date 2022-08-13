@@ -4,11 +4,8 @@ use crate::account::Account;
 use crate::error::UnknownTransactionError;
 
 use std::error::Error;
-use std::env;
 use csv;
 use std::collections::HashMap;
-
-
 
 /*
     struct to keep information about set of transactions and accounts. Can be easily modified to have multiple payment engines running at the same time,
@@ -18,7 +15,7 @@ use std::collections::HashMap;
 pub struct PaymentEngine {
     transactions: HashMap<u32, Transaction>,
     accounts: HashMap<u16, Account>,
-    entries: Vec<Transaction>
+    entries: Vec<Transaction>,
 }
 
 impl PaymentEngine {
@@ -56,9 +53,7 @@ impl PaymentEngine {
     */
     pub fn process_transactions(&mut self) -> Result<(), Box<dyn Error>> { //TODO change to process_entries    
         for entry in &self.entries{
-            //println!("{}", entry);
             let client_id = entry.get_client_id();
-            println!("{:?}", entry);
             match entry.get_type() {
                 TxType::Deposit | TxType::Withdrawal => { //if account is locked, ignore transaction.
                     let account = self.accounts.entry(client_id).or_insert(Default::default());

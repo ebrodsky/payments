@@ -64,8 +64,8 @@ mod tests{
         let mut csv_writer = WriterBuilder::new().flexible(true).from_path("test_basic.csv")?;
         csv_writer.write_record(&["type", "client", "tx", "amount"])?;
 
-        let n_transactions = 5;
-        let n_accounts = 3;
+        let n_transactions = 100;
+        let n_accounts = 5;
         let mut entries:Vec<String> = vec![];
         let mut resolves:Vec<String> = vec![];
         let mut rng = rand::thread_rng();
@@ -93,7 +93,7 @@ mod tests{
             amount = rng.gen_range(1..100) as f32;
             let tx = transaction(&tx_type, client_id, tx_id, Some(amount));
             entries.push(tx);
-            resolves.push(transaction(&TxType::Resolve, client_id, tx_id, Some(amount)));
+            resolves.push(transaction(&TxType::Chargeback, client_id, tx_id, Some(amount)));
         }
         for entry in &entries{
             csv_writer.write_record(entry.split(",").collect::<Vec<&str>>())?;
@@ -110,6 +110,7 @@ mod tests{
         for (_id, account) in accounts{
             assert!(account.get_available() >= 0.0);
         }
+        engine.output_accounts();
 
         Ok(())
     }
