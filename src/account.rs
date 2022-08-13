@@ -1,9 +1,9 @@
 use std::error::Error;
 
 use crate::transaction::{Transaction, TxType};
-use crate::error::NonActionableTransactionError;
+use crate::error::{NonActionableTransactionError, InsufficientFundsError};
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Account {
     client_id: u16,
     available: f32,
@@ -17,21 +17,33 @@ impl Account {
     pub fn is_locked(&self) -> bool{
         return self.locked;
     }
+    pub fn set_id(&mut self, client_id: u16) {
+        self.client_id = client_id;
+    }
+    pub fn get_available(&self) -> f32{
+        return self.available;
+    }
+
     //check if withdrawal or deposit and add or remove funds based on that.
-    pub fn process_transfer(&mut self, transaction: &Transaction){
+    pub fn process_transfer(&mut self, transaction: &Transaction) -> Result<(), Box<dyn Error>>{
         let amount = transaction.get_amount().unwrap_or(0.0);
         match transaction.get_type(){
             TxType::Deposit => {
                 self.available += amount;
                 self.total += amount;
+                Ok(())
             },
             TxType::Withdrawal => {
                 if self.available >= amount{ //Make sure client has sufficient funds.
                     self.available -= amount;
                     self.total -= amount;
+                    Ok(())
+                }
+                else{
+                    Err(Box::new(InsufficientFundsError))
                 }
             },
-            _ => {}
+            _ => unreachable!()
         }
     }
 
@@ -74,8 +86,9 @@ impl Account {
     }
     
     //Reverses a transaction and marks the account as locked.
-    pub fn chargeback_transaction(&mut self, transaction: &Transaction) -> Result<(), Box<dyn Error>>{
+    pub fn chargeback_transaction(&mut self, transaction: &mut Transaction) -> Result<(), Box<dyn Error>>{
         let amount = transaction.get_amount().unwrap_or(0.0);
+        transaction.set_dispute(false);
         self.locked = true;
         match transaction.get_type(){
             TxType::Deposit => {

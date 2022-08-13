@@ -17,3 +17,12 @@ impl fmt::Display for UnknownTransactionError{
         write!(f, "References transaction cannot not be referrenced")
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct InsufficientFundsError;
+impl Error for InsufficientFundsError{}
+impl fmt::Display for InsufficientFundsError{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "References transaction cannot not be referrenced")
+    }
+}

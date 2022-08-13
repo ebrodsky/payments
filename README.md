@@ -9,6 +9,8 @@ I assume that since the disputes, resolves and chargebacks are coming from the p
 
 Disputes on a withdrawal act in an opposite way as on deposits. This means that the held amount for a transaction could be negative. If it's negative, this means that the withdrawal transaction is disputed, and once resolve the held amount will increase and the available amount decrease, representing a successfully resolved withdrawal. 
 
+We maintain transaction as a hashmap of VALID transactions where 1. the amounts are valid 2. the client has sufficient funds
+
 To run:
 
 ```shell

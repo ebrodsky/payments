@@ -92,7 +92,7 @@ impl Transaction {
                 }
                 valid
             },
-            _ => false
+            _ => unreachable!()
         }
     }
 }

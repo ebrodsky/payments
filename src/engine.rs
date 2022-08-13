@@ -25,11 +25,11 @@ impl PaymentEngine {
     pub fn new() -> Self {
         PaymentEngine { transactions: HashMap::new(), accounts: HashMap::new(), entries: vec![]}
     }
-
+    pub fn get_accounts(&self) -> &HashMap<u16, Account>{
+        return &self.accounts;
+    }
     //Read the user-provided csv from the command line arguments.
-    pub fn read_csv(&mut self) -> Result<(), Box<dyn Error>> {
-        let args: Vec<String> = env::args().collect();
-        let csv_name = &args[1];
+    pub fn read_csv(&mut self, csv_name: &String) -> Result<(), Box<dyn Error>> {
         let mut reader = csv::ReaderBuilder::new()
             .delimiter(b',')
             .trim(csv::Trim::All).from_path(csv_name)?;
@@ -58,42 +58,50 @@ impl PaymentEngine {
         for entry in &self.entries{
             //println!("{}", entry);
             let client_id = entry.get_client_id();
-
-            let account = self.accounts.entry(client_id).or_insert(Default::default());
+            println!("{:?}", entry);
             match entry.get_type() {
                 TxType::Deposit | TxType::Withdrawal => { //if account is locked, ignore transaction.
-                    if entry.is_valid_transfer() && account.is_locked() == false{
-                        account.process_transfer(&entry);
-                        self.transactions.insert(entry.get_tx_id(), entry.to_owned());
+                    let account = self.accounts.entry(client_id).or_insert(Default::default());
+                    account.set_id(client_id);
+                    if entry.is_valid_transfer() && account.is_locked() == false{ //make sure account isn't locked and transfer is valid
+                        if let Ok(()) = account.process_transfer(&entry){ //check if client has sufficient funds to withdraw
+                            self.transactions.insert(entry.get_tx_id(), entry.to_owned()); //only add transaction if sufficient funds
+                        }
                     }
                 },
                 TxType::Dispute => {
-                    if self.transactions.contains_key(&entry.get_tx_id()){
+                    let account = self.accounts.entry(client_id).or_insert(Default::default());
+                    account.set_id(client_id);
+                    if self.transactions.contains_key(&entry.get_tx_id()){ //only act if the transaction exists. 
                         let rel_tx = self.transactions.get_mut(&entry.get_tx_id()).unwrap();
-                        if rel_tx.is_disputed() == false{
+                        if rel_tx.is_disputed() == false && client_id == rel_tx.get_client_id(){ //make sure the only the client who made the tx can act
                             account.dispute_transaction(rel_tx)?
                         }
 
                     }
                 },                
                 TxType::Resolve => {
-                    if self.transactions.contains_key(&entry.get_tx_id()){
+                    let account = self.accounts.entry(client_id).or_insert(Default::default());
+                    account.set_id(client_id);
+                    if self.transactions.contains_key(&entry.get_tx_id()){ //only act if the transaction exists.
                         let rel_tx = self.transactions.get_mut(&entry.get_tx_id()).unwrap();
-                        if rel_tx.is_disputed() == true{
+                        if rel_tx.is_disputed() == true && client_id == rel_tx.get_client_id(){ //make sure the only the client who made the tx can act
                             account.resolve_transaction(rel_tx)?
                         }
                     }
                 },
                 TxType::Chargeback => {
-                    if self.transactions.contains_key(&entry.get_tx_id()){
+                    let account = self.accounts.entry(client_id).or_insert(Default::default());
+                    account.set_id(client_id);
+                    if self.transactions.contains_key(&entry.get_tx_id()){ //only act if the transaction exists.
                         let rel_tx = self.transactions.get_mut(&entry.get_tx_id()).unwrap();
-                        if rel_tx.is_disputed() == true{
+                        if rel_tx.is_disputed() == true && client_id == rel_tx.get_client_id(){ //make sure the only the client who made the tx can act
                             account.chargeback_transaction(rel_tx)?
 
                         }
                     }
                 },
-                TxType::Unknown => {
+                TxType::Unknown => { //Check how to deal with unknown types based on strict or loose csv parsing
                     if STRICT_PARSE == true{
                         Err(Box::new(UnknownTransactionError)).unwrap()
                     }
