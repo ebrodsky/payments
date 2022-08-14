@@ -13,8 +13,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let csv_name = &args[1];
     let mut engine = engine::PaymentEngine::new();
-    let _res = engine.read_csv(csv_name);
-    let _res = engine.process_transactions();
+    let _res = engine.process_csv(csv_name);
     //engine.print_valid_entries();
     engine.output_accounts();
 }
@@ -116,8 +115,7 @@ mod tests{
         }
         csv_writer.flush()?;
         let mut engine = PaymentEngine::new();
-        let _res = engine.read_csv(&"test_basic.csv".to_string());
-        let _res = engine.process_transactions();
+        let _res = engine.process_csv(&"test_basic.csv".to_string());
         let accounts = engine.get_accounts();
         for (_id, account) in accounts{
             assert!(account.get_available() >= 0.0);

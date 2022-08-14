@@ -62,7 +62,7 @@ impl Account {
                 self.available += amount;
                 Ok(())
             }
-            _ => Err(Box::new(NonActionableTransactionError))
+            _ => Err(Box::new(NonActionableTransactionError)) //Could also be unreachable!()
         }
     }
 
@@ -81,7 +81,7 @@ impl Account {
                 self.available -= amount;
                 Ok(())
             }
-            _ => Err(Box::new(NonActionableTransactionError))
+            _ => Err(Box::new(NonActionableTransactionError)) //Could also be unreachable!()
         }
     }
     
@@ -101,7 +101,7 @@ impl Account {
                 self.total += amount;
                 Ok(())
             },
-            _ => Err(Box::new(NonActionableTransactionError))        
+            _ => Err(Box::new(NonActionableTransactionError)) //Could also be unreachable!()
         }
     }
 }
