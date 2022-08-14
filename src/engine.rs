@@ -21,10 +21,13 @@ impl PaymentEngine {
     pub fn new() -> Self {
         PaymentEngine { transactions: HashMap::new(), accounts: HashMap::new()}
     }
+
+    #[allow(dead_code)]
     pub fn get_accounts(&self) -> &HashMap<u16, Account>{
         return &self.accounts;
     }
-    //Read the user-provided csv from the command line arguments.
+
+    //Process each entry in the csv sequentially.
     pub fn process_csv(&mut self, csv_name: &String) -> Result<(), Box<dyn Error>> {
         let mut reader = csv::ReaderBuilder::new()
             .delimiter(b',')
@@ -46,9 +49,9 @@ impl PaymentEngine {
     }
 
     /*
-    Process the entries that the payment engine has. This populates a hashmap that stores transfer transactions (Deposit and Withdrawal) (key = tx id)
+    Processes an entry. This populates a hashmap that stores transfer transactions (Deposit and Withdrawal) (key = tx id)
     Also populates account hashmap that stores account information (key = client id)
-    For the entries given to the engine, it processes them one by one until there is none left.
+    Does not store Disptes, Resolves and Chargebacks as those only reference and modify existing Deposits and Withdrawals
     */
     pub fn process_entry(&mut self, entry: Transaction) -> Result<(), Box<dyn Error>> { //TODO change to process_entries    
         let client_id = entry.get_client_id();

@@ -20,6 +20,7 @@ impl Account {
     pub fn set_id(&mut self, client_id: u16) {
         self.client_id = client_id;
     }
+    #[allow(dead_code)]
     pub fn get_available(&self) -> f32{
         return self.available;
     }

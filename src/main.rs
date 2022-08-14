@@ -45,7 +45,6 @@ mod tests{
     use rand::Rng;
 
     use crate::engine::PaymentEngine;
-    use crate::account::Account;
 
     fn transaction(tx_type: &TxType, client_id: u16, tx_id: u32, amount: Option<f32>) -> String {
         let input;
