@@ -7,7 +7,7 @@ mod error;
 
 //if true, allows transaction parser to just skip invalid transaction entries in the csv.
 //if false, returns an error whenever we find an invalid transaction
-static STRICT_PARSE: bool = true;
+static STRICT_PARSE: bool = false;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -15,6 +15,7 @@ fn main() {
     let mut engine = engine::PaymentEngine::new();
     let _res = engine.read_csv(csv_name);
     let _res = engine.process_transactions();
+    //engine.print_valid_entries();
     engine.output_accounts();
 }
 
@@ -22,6 +23,23 @@ fn main() {
 #[cfg(test)]
 #[allow(unused_assignments)]
 mod tests{
+
+    /* Implemented manually:
+    dep neg amount
+    with neg amount
+    withdraw more than available
+    dispute failed withdrawal (should be same as disputing tx that does not exist)
+    dispute a tx that does not exist
+    resolve a tx under dispute
+    resolve a tx not under dispute
+    chargeback a tx under dispute
+    chargeback a tx not under dispute
+    deposit to a locked account
+    withdraw from a locked account
+    resolve dispute with a locked account
+    chargeback a tx from a locked account
+    */
+
     use csv::WriterBuilder;
     use std::error::Error;
     use crate::transaction::TxType;
@@ -46,26 +64,20 @@ mod tests{
         input
         
     }
-    //dep neg amount
-    //with neg amount
-    //withdraw more than available
-    //dispute failed withdrawal (should be same as disputing tx that does not exist)
-    //dispute a tx that does not exist
-    //resolve a tx under dispute
-    //resolve a tx not under dispute
-    //chargeback a tx under dispute
-    //chargeback a tx not under dispute
-    //deposit to a locked account
-    //withdraw from a locked account
-    //resolve dispute with a locked account
-    //chargeback a tx from a locked account
+
     #[test]
+    /*
+    Create a set of random transactions, some valid, some invalid (randomly), output them into a csv file and then process that csv
+    through the payments engine.
+    We test to make sure that after all valid transactions have been resolved or chargebacked, the available amount on all accounts should be positive.
+    While under dispute, an account can have a negative held amount or available amount due to the way I implement withdrawal and deposit disputes.
+    */
     fn test_random() -> Result<(), Box<dyn Error>>{
         let mut csv_writer = WriterBuilder::new().flexible(true).from_path("test_basic.csv")?;
         csv_writer.write_record(&["type", "client", "tx", "amount"])?;
 
-        let n_transactions = 100;
-        let n_accounts = 5;
+        let n_transactions = 15;
+        let n_accounts = 3;
         let mut entries:Vec<String> = vec![];
         let mut resolves:Vec<String> = vec![];
         let mut rng = rand::thread_rng();
