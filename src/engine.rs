@@ -53,7 +53,7 @@ impl PaymentEngine {
     Also populates account hashmap that stores account information (key = client id)
     Does not store Disptes, Resolves and Chargebacks as those only reference and modify existing Deposits and Withdrawals
     */
-    pub fn process_entry(&mut self, entry: Transaction) -> Result<(), Box<dyn Error>> { //TODO change to process_entries    
+    pub fn process_entry(&mut self, entry: Transaction) -> Result<(), Box<dyn Error>> {    
         let client_id = entry.get_client_id();
         match entry.get_type() {
             TxType::Deposit | TxType::Withdrawal => { //if account is locked, ignore transaction.
@@ -93,7 +93,6 @@ impl PaymentEngine {
                     let rel_tx = self.transactions.get_mut(&entry.get_tx_id()).unwrap();
                     if rel_tx.is_disputed() == true && client_id == rel_tx.get_client_id(){ //make sure the only the client who made the tx can act
                         account.chargeback_transaction(rel_tx)?
-
                     }
                 }
             },

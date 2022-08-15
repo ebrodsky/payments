@@ -67,8 +67,9 @@ mod tests{
     /*
     Create a set of random transactions, some valid, some invalid (randomly), output them into a csv file and then process that csv
     through the payments engine.
-    We test to make sure that after all valid transactions have been resolved or chargebacked, the available amount on all accounts should be positive.
+    We test to make sure that after all valid transactions have been resolved, the available amount on all accounts should be positive.
     While under dispute, an account can have a negative held amount or available amount due to the way I implement withdrawal and deposit disputes.
+    After a chargeback, an account can have a negative available amount if a big deposit was disputed and chargebacked after a withdrawal.
     */
     fn test_random() -> Result<(), Box<dyn Error>>{
         let mut csv_writer = WriterBuilder::new().flexible(true).from_path("test_basic.csv")?;
@@ -103,7 +104,7 @@ mod tests{
             amount = rng.gen_range(1..100) as f32;
             let tx = transaction(&tx_type, client_id, tx_id, Some(amount));
             entries.push(tx);
-            resolves.push(transaction(&TxType::Chargeback, client_id, tx_id, Some(amount)));
+            resolves.push(transaction(&TxType::Resolve, client_id, tx_id, Some(amount)));
         }
         for entry in &entries{
             csv_writer.write_record(entry.split(",").collect::<Vec<&str>>())?;
